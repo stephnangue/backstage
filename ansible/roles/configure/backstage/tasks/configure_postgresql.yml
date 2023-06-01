@@ -1,0 +1,36 @@
+---
+- name: Generate the initial "pg_hba.conf" file
+  template:
+    src: initial_pg_hba.conf.j2
+    dest: "{{ postgresql_config_dir }}/pg_hba.conf"
+    mode: u=rw,g=r,o=r
+
+- name: Restart Postgresql service
+  service:
+    name: postgresql
+    state: restarted
+    daemon_reload: true
+
+- name: Change postgresql password
+  ansible.builtin.shell: | 
+    sudo -u postgres psql -U postgres -d postgres -c "alter user postgres with password '"{{ backstage_postgres_password }}"';"
+  register: change_password
+  failed_when: change_password.rc != 0 and change_password.rc != 1
+  changed_when: change_password.rc == 0
+
+- name: Ensure that "pg_hba.conf" is absent
+  file:
+    path: "{{ postgresql_config_dir }}/pg_hba.conf"
+    state: absent
+
+- name: Generate the a modified "pg_hba.conf" file
+  template:
+    src: modified_pg_hba.conf.j2
+    dest: "{{ postgresql_config_dir }}/pg_hba.conf"
+    mode: u=rw,g=r,o=r
+
+- name: Restart Postgresql service
+  service:
+    name: postgresql
+    state: restarted
+    daemon_reload: true

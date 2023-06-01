@@ -1,0 +1,38 @@
+---
+- name: Copy the default fastapi folder
+  copy: 
+    src: fastapi
+    dest: "/home/vagrant"
+    owner: root
+    group: root
+    mode: '0744'
+
+- name: Get fastapi running processes
+  shell: "ps aux | grep fast_api | awk '{print $2}'"
+  ignore_errors: yes
+  register: fastapi_processes
+
+- name: Kill fastapi running processes
+  ignore_errors: yes
+  shell: "kill {{ item }}"
+  with_items: "{{ fastapi_processes.stdout_lines }}"
+
+- wait_for:
+    path: "/proc/{{ item }}/status"
+    state: absent
+  with_items: "{{ fastapi_processes.stdout_lines }}"
+  ignore_errors: yes
+  register: stuck_processes
+
+- name: Force kill stuck processes
+  ignore_errors: yes
+  shell: "kill -9 {{ item }}"
+  with_items: "{{ stuck_processes.results | select('failed') | map(attribute='item') | list }}"
+
+- name: Start FastApi App
+  shell: nohup /usr/local/bin/uvicorn fast_api:app --host "{{ hostvars[groups['backstage'][0]]['ansible_host'] }}" --port 8000  </dev/null >/dev/null 2>&1 &
+  args:
+    chdir: "/home/vagrant/fastapi"
+  register: uninstall
+  failed_when: uninstall.rc != 0 and uninstall.rc != 1
+  changed_when: uninstall.rc == 0

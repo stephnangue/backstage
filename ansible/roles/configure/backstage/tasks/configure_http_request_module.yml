@@ -1,0 +1,11 @@
+---
+- name: Ensure that that "scaffolder.ts" is absent
+  file:
+    path: "{{ backstage_dir }}/packages/backend/src/plugins/scaffolder.ts"
+    state: absent
+
+- name: Generate the new "scaffolder.ts" file
+  template:
+    src: scaffolder.ts.j2
+    dest: "{{ backstage_dir }}/packages/backend/src/plugins/scaffolder.ts"
+    mode: u=rw,g=r,o=r

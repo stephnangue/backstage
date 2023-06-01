@@ -1,0 +1,60 @@
+---
+- name: Ensure that that "app-config.yaml" is absent
+  file:
+    path: "{{ backstage_dir }}/app-config.yaml"
+    state: absent
+
+- name: Generate the new "app-config.yaml" file
+  template:
+    src: app-config.yaml.j2
+    dest: "{{ backstage_dir }}/app-config.yaml"
+    mode: u=rw,g=r,o=r
+
+- name: Ensure that that "App.tsx" is absent
+  file:
+    path: "{{ backstage_dir }}/packages/app/src/App.tsx"
+    state: absent
+
+- name: Generate the new "App.tsx" file
+  template:
+    src: App.tsx.j2
+    dest: "{{ backstage_dir }}/packages/app/src/App.tsx"
+    mode: u=rw,g=r,o=r
+
+- name: Copy the default software templates
+  copy: 
+    src: templates
+    dest: "{{ backstage_dir }}"
+    owner: root
+    group: root
+    mode: '0744'
+
+- name: Get backstage running processes
+  shell: "ps aux | grep backstage | awk '{print $2}'"
+  ignore_errors: yes
+  register: backstage_processes
+
+- name: Kill backstage running processes
+  ignore_errors: yes
+  shell: "kill {{ item }}"
+  with_items: "{{ backstage_processes.stdout_lines }}"
+
+- wait_for:
+    path: "/proc/{{ item }}/status"
+    state: absent
+  with_items: "{{ backstage_processes.stdout_lines }}"
+  ignore_errors: yes
+  register: stuck_processes
+
+- name: Force kill stuck processes
+  ignore_errors: yes
+  shell: "kill -9 {{ item }}"
+  with_items: "{{ stuck_processes.results | select('failed') | map(attribute='item') | list }}"
+
+- name: Start Backstage App
+  shell: nohup sudo yarn dev </dev/null >/dev/null 2>&1 &
+  args:
+    chdir: "{{ backstage_dir }}"
+  register: uninstall
+  failed_when: uninstall.rc != 0 and uninstall.rc != 1
+  changed_when: uninstall.rc == 0

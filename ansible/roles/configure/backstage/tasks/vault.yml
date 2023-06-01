@@ -1,0 +1,32 @@
+- name: Read the token
+  shell: cat /secret/token
+  args: 
+    warn: no
+  register: token
+
+- name: Read the login
+  shell: cat /secret/login
+  args: 
+    warn: no
+  register: login
+  
+ 
+
+- name: Generate token devops
+  uri:
+    url: http://{{ hostvars[groups['vault'][0]]['inventory_hostname'] }}:8200/v1/auth/approle/login
+    method: POST
+    body_format: json
+    status_code: 200
+    return_content: true
+    body: "{{ login.stdout }}" 
+  register: devops_token
+
+- name: Read version of "devops_plaform_secrets" from Vault
+  uri:
+    url: "http://{{ hostvars[groups['vault'][0]]['inventory_hostname'] }}:8200/v1/secret/data/devops/platform?version"
+    method: GET
+    status_code: 200
+    headers:
+      X-Vault-Token: "{{ devops_token.json.auth.client_token }}"
+  register: devops_platform_secrets

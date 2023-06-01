@@ -1,0 +1,15 @@
+---
+- name: Retrieve the secret on vault
+  import_tasks: vault.yml
+  
+- name: Configure PostgreSQL
+  import_tasks: configure_postgresql.yml
+
+- name: Configure FastApi
+  import_tasks: configure_fastapi.yml
+
+- name: Configure Http request action moduel
+  import_tasks: configure_http_request_module.yml
+
+- name: Configure Backstage
+  import_tasks: configure_backstage.yml
