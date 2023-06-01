@@ -1,0 +1,12 @@
+---
+- hosts: vault
+  become: true
+  vars_files:
+    - "{{root_dir}}/vars/variables.yml"
+    - "{{root_dir}}/vars/secrets.yml"
+
+  environment:
+    VAULT_ADDR: "http://{{ hostvars[groups['vault'][0]]['ansible_host'] }}:8200"
+
+  roles:
+    - name: configure/vault

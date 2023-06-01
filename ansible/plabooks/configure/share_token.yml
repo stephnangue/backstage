@@ -1,0 +1,9 @@
+---
+- hosts: backstage,gitlab,jenkins_master,nexus
+  become: true
+  vars_files:
+    - "{{root_dir}}/vars/variables.yml"
+    - "{{root_dir}}/vars/secrets.yml"
+    
+  roles:
+    - name: configure/share_token

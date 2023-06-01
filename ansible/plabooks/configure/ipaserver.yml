@@ -1,0 +1,9 @@
+---
+- hosts: ipaserver
+  become: true
+  vars_files:
+    - "{{root_dir}}/vars/variables.yml"
+    - "{{root_dir}}/vars/secrets.yml"
+
+  roles:
+    - role: configure/ipaserver
