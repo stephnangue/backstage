@@ -1,0 +1,119 @@
+app:
+  title: Devops Toolchain Backstage App
+  baseUrl: http://{{ hostvars[groups['backstage'][0]]['inventory_hostname'] }}:3000
+  listen:
+    host: 0.0.0.0
+
+organization:
+  name: STET
+
+backend:
+  baseUrl: https://backstage-1.devopslab.ded.stet
+  listen:
+    port: 7007
+    host: {{ hostvars[groups['backstage'][0]]['inventory_hostname'] }}
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+  cors:
+    origin: https://backstage.devopslab.ded.stet
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  database:
+    client: pg
+    connection:
+      host: 127.0.0.1
+      port: 5432
+      user: postgres
+      password: {{ backstage_postgres_password }}
+  cache:
+    store: memory
+
+integrations:
+  gitlab:
+    - host: {{ hostvars[groups['gitlab'][0]]['inventory_hostname'] }}
+      token:  {{ token_gitlab_backstage }}
+      apiBaseUrl: http://{{ hostvars[groups['gitlab'][0]]['inventory_hostname'] }}/api/v4
+      baseUrl: http://{{ hostvars[groups['gitlab'][0]]['inventory_hostname'] }} 
+
+proxy:
+  '/jenkins':
+     target: http://{{ hostvars[groups['backstage'][0]]['ansible_host'] }}:8000
+     changeOrigin: false
+     headers:
+       h-username: system
+       h-password: default
+  '/vault': 
+     target: http://vault.devopslab.ded.stet:8200
+     changeOrigin: false
+     headers: 
+          X-Vault-Token: {{ devops_token.json.auth.client_token }}
+     
+# Reference documentation http://backstage.io/docs/features/techdocs/configuration
+# Note: After experimenting with basic setup, use CI/CD to generate docs
+# and an external cloud storage when deploying TechDocs for production use-case.
+# https://backstage.io/docs/features/techdocs/how-to-guides#how-to-migrate-from-techdocs-basic-to-recommended-deployment-approach
+techdocs:
+  builder: 'local' # Alternatives - 'external'
+  generator:
+    runIn: 'docker' # Alternatives - 'local'
+  publisher:
+    type: 'local' # Alternatives - 'googleGcs' or 'awsS3'. Read documentation for using alternatives.
+
+auth:
+  # see https://backstage.io/docs/auth/ to learn about auth providers
+  providers: {}
+
+scaffolder:
+  # see https://backstage.io/docs/features/software-templates/configuration for software template options
+
+catalog:
+  import:
+    entityFilename: catalog-info.yaml
+    pullRequestBranchName: backstage-integration
+  rules:
+    - allow: [Component, System, API, Resource, Location]
+  locations:
+    # Local example data, file locations are relative to the backend process, typically `packages/backend`
+    - type: file
+      target: ../../examples/entities.yaml
+
+    - type: file
+      target: ../../templates/dho-robotframework-ci/template.yaml
+      rules:
+        - allow: [Template]
+
+    - type: file
+      target: ../../templates/stet-delivery-pipeline/template.yaml
+      rules:
+        - allow: [Template]
+
+    - type: file
+      target: ../../templates/dev-maven-cicd/template.yaml
+      rules:
+        - allow: [Template]
+
+    - type: file
+      target: ../../templates/dev-maven-ci/template.yaml
+      rules:
+        - allow: [Template]
+
+    - type: file
+      target: ../../templates/ssi-openscap-ci/template.yaml
+      rules:
+        - allow: [Template]
+
+    # Local example organizational data
+    - type: file
+      target: ../../examples/org.yaml
+      rules:
+        - allow: [User, Group]
+
+    ## Uncomment these lines to add more example data
+    # - type: url
+    #   target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all.yaml
+
+    ## Uncomment these lines to add an example org
+    # - type: url
+    #   target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/acme-corp.yaml
+    #   rules:
+    #     - allow: [User, Group]

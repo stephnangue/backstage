@@ -1,0 +1,62 @@
+import { CatalogClient } from '@backstage/catalog-client';
+import {
+  UrlReader
+} from '@backstage/backend-common';
+import {
+  createRouter,
+  createBuiltinActions,
+  TemplateAction,
+} from '@backstage/plugin-scaffolder-backend';
+import { createHttpBackstageAction } from '@roadiehq/scaffolder-backend-module-http-request'
+import { DiscoveryApi } from '@backstage/plugin-permission-common';
+import { ScmIntegrations } from '@backstage/integration';
+import { Config } from '@backstage/config';
+import { Router } from 'express';
+import type { PluginEnvironment } from '../types';
+
+export const createActions = (options: {
+  reader: UrlReader;
+  integrations: ScmIntegrations;
+  config: Config;
+  catalogClient: CatalogClient;
+  discovery: DiscoveryApi;
+}): TemplateAction<any>[] => {
+  const { reader, integrations, config, catalogClient, discovery } = options;
+  const defaultActions = createBuiltinActions({
+    reader,
+    integrations,
+    catalogClient,
+    config,
+  });
+
+  return [
+    createHttpBackstageAction({ discovery }),
+    ...defaultActions,
+  ];
+};
+
+export default async function createPlugin({
+  logger,
+  config,
+  database,
+  reader,
+  discovery,
+}: PluginEnvironment): Promise<Router> {
+
+  const catalogClient = new CatalogClient({ discoveryApi: discovery });
+
+  return await createRouter({
+    logger,
+    config,
+    database,
+    catalogClient,
+    reader,
+    actions: createActions({
+      reader,
+      integrations: ScmIntegrations.fromConfig(config),
+      config,
+      discovery,
+      catalogClient: catalogClient,
+    }),
+  });
+}
