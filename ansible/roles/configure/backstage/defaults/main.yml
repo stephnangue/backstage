@@ -1,0 +1,2 @@
+backstage_dir: '/home/vagrant/backstage'
+postgresql_config_dir: '/var/lib/pgsql/data'
