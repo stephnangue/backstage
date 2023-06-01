@@ -1,0 +1,73 @@
+---
+- name: Provision or destory the toolchain on AWS
+  import_playbook: provision/aws.yml
+  vars:
+    root_dir: "{{ lookup('env', 'PWD') }}"
+
+- name: Configure IPA Server
+  import_playbook: configure/ipaserver.yml
+  vars:
+    root_dir: "{{ lookup('env', 'PWD') }}"
+  tags: 
+    - configure
+    - configure_ipaserver
+
+- name: Configure IPA clients
+  import_playbook: configure/ipaclients.yml
+  vars:
+    root_dir: "{{ lookup('env', 'PWD') }}"
+  tags: 
+    - configure
+    - configure_ipaclients
+
+- name: Configure Hashicorp Vault server
+  import_playbook: configure/vault.yml
+  vars:
+    root_dir: "{{ lookup('env', 'PWD') }}"
+  tags: 
+    - configure
+    - configure_vault
+
+- name: Share token vault
+  import_playbook: configure/share_token.yml
+  vars:
+    root_dir: "{{ lookup('env', 'PWD') }}"
+  tags: 
+    - configure
+    - configure_vault
+
+  
+- name: Configure nexus
+  import_playbook: configure/nexus.yml
+  vars:
+    root_dir: "{{ lookup('env', 'PWD') }}"
+  tags: 
+    - configure
+    - configure_nexus
+ 
+- name: Configure gitlab
+  import_playbook: configure/gitlab.yml
+  vars:
+    root_dir: "{{ lookup('env', 'PWD') }}"
+  tags: 
+    - configure
+    - configure_gitlab
+  
+- name: Configure Jenkins cluster
+  import_playbook: configure/jenkins_master.yml
+  vars:
+    root_dir: "{{ lookup('env', 'PWD') }}"
+  tags: 
+    - configure
+    - configure_jenkins
+
+- name: Configure Backstage
+  import_playbook: configure/backstage.yml
+  vars:
+    root_dir: "{{ lookup('env', 'PWD') }}"
+  tags: 
+    - configure
+    - configure_backstage
+
+
+
