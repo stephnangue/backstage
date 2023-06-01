@@ -1,0 +1,16 @@
+---
+author: 'Stephane NANGUE'
+aws_iam_username: 'snangue'
+shared_credentials_file: '/home/snangue/.aws/credentials'
+region: 'eu-west-1'
+availability_zone: 'eu-west-1a'
+vpc_name: 'sabr_devops_lab'
+number_of_jenkins_generic_worker: 1
+terraform_binary: '/home/snangue/local/bin/terraform'
+domain_name: 'devopslab.ded.stet'
+ipaserver_realm: 'DEVOPSLAB.DED.STET'
+ldap_all_dc: 'dc=devopslab,dc=ded,dc=stet'
+jenkins_config_dir: "/tmp"
+devops_platform_secrets_version: 1
+jenkins_worker_public_key: ''
+jenkins_worker_ssh_user: 'vagrant'
