@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    inventory_path: "{{root_dir}}/inventory"
+    terraform_project: "{{root_dir}}/../terraform/aws/"
+  vars_files:
+    - "{{root_dir}}/vars/variables.yml"
+    - "{{root_dir}}/vars/secrets.yml"
+
+  roles:
+    - name: provision/aws
